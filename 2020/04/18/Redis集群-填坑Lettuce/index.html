@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>+Redis集群(填坑Lettuce)&#39; | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前面我们已经搭建好了redis集群，使用springboot来集成这个集群 新建一个springboot项目，pom中引入相关jar 123456789101112131415161718192021222324252627282930&lt;parent&gt;        &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="+Redis集群(填坑Lettuce)&#39;">
+<meta property="og:url" content="http://yoursite.com/2020/04/18/Redis%E9%9B%86%E7%BE%A4-%E5%A1%AB%E5%9D%91Lettuce/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="前面我们已经搭建好了redis集群，使用springboot来集成这个集群 新建一个springboot项目，pom中引入相关jar 123456789101112131415161718192021222324252627282930&lt;parent&gt;        &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-04-18T04:58:09.000Z">
+<meta property="article:modified_time" content="2020-04-18T04:58:29.774Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="&#39;springboot-Redis集群-填坑Lettuce" class="article article-type-&#39;springboot" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/04/18/Redis%E9%9B%86%E7%BE%A4-%E5%A1%AB%E5%9D%91Lettuce/" class="article-date">
+  <time datetime="2020-04-18T04:58:09.000Z" itemprop="datePublished">2020-04-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      +Redis集群(填坑Lettuce)&#39;
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前面我们已经<a href="http://note.youdao.com/noteshare?id=62f1eef263c2c2d798be04808346b823&sub=22A944A5F5264A65A8380D385E30E9F5" target="_blank" rel="noopener">搭建好了redis集群</a>，使用springboot来集成这个集群</p>
+<p>新建一个springboot项目，pom中引入相关jar</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&lt;parent&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-boot-starter-parent&lt;&#x2F;artifactId&gt;</span><br><span class="line">        &lt;version&gt;2.1.5.RELEASE&lt;&#x2F;version&gt;</span><br><span class="line">        &lt;relativePath&#x2F;&gt;</span><br><span class="line">    &lt;&#x2F;parent&gt;</span><br><span class="line">    &lt;dependencies&gt;</span><br><span class="line"></span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spring-boot-starter-data-redis&lt;&#x2F;artifactId&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line"></span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spring-boot-starter-web&lt;&#x2F;artifactId&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line"></span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;spring-boot-starter-test&lt;&#x2F;artifactId&gt;</span><br><span class="line">            &lt;scope&gt;test&lt;&#x2F;scope&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line"></span><br><span class="line">        &lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;org.apache.commons&lt;&#x2F;groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;commons-pool2&lt;&#x2F;artifactId&gt;</span><br><span class="line">        &lt;&#x2F;dependency&gt;</span><br><span class="line"></span><br><span class="line">    &lt;&#x2F;dependencies&gt;</span><br></pre></td></tr></table></figure>
+<p>编写 application.yml文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  redis:</span><br><span class="line">    cluster:</span><br><span class="line">      nodes:</span><br><span class="line">        - 10.10.1.114:6391</span><br><span class="line">        - 10.10.1.114:6392</span><br><span class="line">        - 10.10.1.114:6393</span><br><span class="line">        - 10.10.1.49:6394</span><br><span class="line">        - 10.10.1.49:6395</span><br><span class="line">        - 10.10.1.49:6396</span><br><span class="line">      max-redirects: 3</span><br><span class="line"></span><br><span class="line">    lettuce:#使用spring默认的lettuce连接池</span><br><span class="line">      pool:</span><br><span class="line">        max-active: 10</span><br><span class="line">        max-wait: -1ms</span><br><span class="line">        max-idle: 10</span><br><span class="line">        min-idle: 0</span><br></pre></td></tr></table></figure>
+
+
+<p>RedisTemplate默认使用的是JdkSerializationRedisSerializer，可视化和效率都不太好，我们这里改成使用Jackson2JsonRedisSerializer 和 StringRedisSerializer序列化数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class RedisConfiguration &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedisProperties redisProperties;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Bean(&quot;redisTemplate&quot;)</span><br><span class="line">    public RedisTemplate&lt;String, Serializable&gt; redisTemplate(RedisConnectionFactory factory) &#123;</span><br><span class="line"></span><br><span class="line">        RedisTemplate&lt;String, Serializable&gt; template &#x3D; new RedisTemplate&lt;String, Serializable&gt;();</span><br><span class="line">        template.setConnectionFactory(factory);</span><br><span class="line">        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer &#x3D; new Jackson2JsonRedisSerializer(Object.class);</span><br><span class="line">        ObjectMapper om &#x3D; new ObjectMapper();</span><br><span class="line">        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);</span><br><span class="line">        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);</span><br><span class="line">        jackson2JsonRedisSerializer.setObjectMapper(om);</span><br><span class="line">        StringRedisSerializer stringRedisSerializer &#x3D; new StringRedisSerializer();</span><br><span class="line">        &#x2F;&#x2F; key采用String的序列化方式</span><br><span class="line">        template.setKeySerializer(stringRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; hash的key也采用String的序列化方式-[</span><br><span class="line">        template.setHashKeySerializer(stringRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; value序列化方式采用jackson</span><br><span class="line">        template.setValueSerializer(jackson2JsonRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; hash的value序列化方式采用jackson</span><br><span class="line">        template.setHashValueSerializer(jackson2JsonRedisSerializer);</span><br><span class="line">        template.afterPropertiesSet();</span><br><span class="line">        return template;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>新建一个User对象进行测试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public class User implements Serializable &#123;</span><br><span class="line"></span><br><span class="line">    private static final long serialVersionUID &#x3D; 4220515347228129741L;</span><br><span class="line">    private Integer id;</span><br><span class="line">    private String username;</span><br><span class="line">    private Integer age;</span><br><span class="line"></span><br><span class="line">    private User parents;</span><br><span class="line"></span><br><span class="line">    public User(Integer id, String username, Integer age,User parents) &#123;</span><br><span class="line">        this.id &#x3D; id;</span><br><span class="line">        this.username &#x3D; username;</span><br><span class="line">        this.age &#x3D; age;</span><br><span class="line">        this.parents &#x3D; parents;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public User() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">   ／／省set和get方法</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>新建一个Controller类提供接口测试（提供接口是为了模拟redis服务部分宕机后服务的真实情况）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;&#x2F;user&quot;)</span><br><span class="line">public class UserController &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedisTemplate&lt;String, Serializable&gt; redisTemplate;</span><br><span class="line"></span><br><span class="line">    @PostMapping</span><br><span class="line">    public void addUser(@RequestBody  User user)&#123;</span><br><span class="line"></span><br><span class="line">        String key&#x3D;&quot;user:&quot;+user.getId();</span><br><span class="line">        redisTemplate.opsForValue().set(key,user);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @GetMapping</span><br><span class="line">    public User getUser(@RequestParam  Integer userId)&#123;</span><br><span class="line"></span><br><span class="line">        String key&#x3D;&quot;user:&quot;+userId;</span><br><span class="line">       return (User)redisTemplate.opsForValue().get(key);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>新建Application类，启动服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">public class ApplicationRunner &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        SpringApplication.run(ApplicationRunner.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用Postman 调用接口插入6条数据 id 为 1-6</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">post http:&#x2F;&#x2F;localhost:8080&#x2F;user</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">&quot;id&quot;:1,</span><br><span class="line">&quot;username&quot;:&quot;aaa&quot;,</span><br><span class="line">&quot;age&quot;:&quot;23&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>查看redis中的keys，发现6条数据分布在3台机器中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">root@cloud-nlp:&#x2F;config# redis-cli -c -p 6391</span><br><span class="line">127.0.0.1:6391&gt; keys *</span><br><span class="line">1) &quot;user:3&quot;</span><br><span class="line">127.0.0.1:6391&gt; exit</span><br><span class="line">root@cloud-nlp:&#x2F;config# redis-cli -c -p 6392</span><br><span class="line">127.0.0.1:6392&gt; keys *</span><br><span class="line">1) &quot;user:4&quot;</span><br><span class="line">127.0.0.1:6392&gt; exit</span><br><span class="line">root@cloud-nlp:&#x2F;config# redis-cli -c -p 6393</span><br><span class="line">127.0.0.1:6393&gt; keys *</span><br><span class="line">1) &quot;user:5&quot;</span><br><span class="line">2) &quot;user:1&quot;</span><br><span class="line">3) &quot;user:6&quot;</span><br><span class="line">4) &quot;user:2&quot;</span><br><span class="line">127.0.0.1:6393&gt;</span><br></pre></td></tr></table></figure>
+
+<p>调用获取数据接口,能够获取数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">get http:&#x2F;&#x2F;localhost:8081&#x2F;user?userId&#x3D;6</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;id&quot;: 6,</span><br><span class="line">    &quot;username&quot;: &quot;aaa&quot;,</span><br><span class="line">    &quot;age&quot;: 23</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>模拟一台服务器宕机（停掉一台服务器上的三个容器）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker stop redis-master1 redis-master2 redis-master3</span><br></pre></td></tr></table></figure>
+
+<p>发现此时springboot的redis集群无法使用</p>
+<p>查看redis集群状态</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6393&gt; cluster info</span><br><span class="line">cluster_state:ok</span><br><span class="line">cluster_slots_assigned:16384</span><br><span class="line">cluster_slots_ok:16384</span><br><span class="line">cluster_slots_pfail:0</span><br><span class="line">cluster_slots_fail:0</span><br><span class="line">cluster_known_nodes:6</span><br><span class="line">cluster_size:3</span><br><span class="line">cluster_current_epoch:6</span><br><span class="line">cluster_my_epoch:4</span><br><span class="line">cluster_stats_messages_ping_sent:5059</span><br><span class="line">cluster_stats_messages_pong_sent:5130</span><br><span class="line">cluster_stats_messages_meet_sent:4</span><br><span class="line">cluster_stats_messages_sent:10193</span><br><span class="line">cluster_stats_messages_ping_received:5128</span><br><span class="line">cluster_stats_messages_pong_received:5063</span><br><span class="line">cluster_stats_messages_meet_received:2</span><br><span class="line">cluster_stats_messages_received:10193</span><br></pre></td></tr></table></figure>
+<p>集群状态还是正常，前面停掉的三个节点已经fail（不影响集群）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6393&gt; cluster nodes</span><br><span class="line">8ea8565ad01b17f9274110b34bf145e5a9b23cd7 10.10.1.114:6391@16391 master - 0 1587035427998 1 connected 0-5460</span><br><span class="line">71a3a55b7f62b69cbb9de13462e0dc33a14918ae 10.10.1.49:6394@16394 master,fail - 1587035388110 1587035387000 4 disconnected</span><br><span class="line">89979f22bb855c3fb11026539d8ce20664107c18 10.10.1.49:6395@16395 slave,fail bdcd632b46ae639ffe7cd1aa533539c88c5e0e3d 1587035388110 1587035384000 5 disconnected</span><br><span class="line">99d5283110e71f2c1462a647662074459c2aa33d 10.10.1.49:6396@16396 slave,fail 8ea8565ad01b17f9274110b34bf145e5a9b23cd7 1587035388110 1587035386000 6 disconnected</span><br><span class="line">c6a72d4cc1cf65daef4a6ee720c32ed23bccadbe 10.10.1.114:6393@16393 myself,master - 0 1587035426000 7 connected 5461-10922</span><br><span class="line">bdcd632b46ae639ffe7cd1aa533539c88c5e0e3d 10.10.1.114:6392@16392 master - 0 1587035426996 2 connected 10923-16383</span><br></pre></td></tr></table></figure>
+
+<p>由此可知是springboot集群连接出现问题，查资料发现spring-redis默认连接池（Lettuce pool）框架在redis的其中一台master机器崩了之后，并没有刷新连接池的连接，仍然连接的是挂掉的那台redis服务器</p>
+<p>通过寻找资料，发现springboot在1.x使用的是jedis框架，在2.x改为默认使用Lettuce框架与redis连接。<br>在Lettuce官方文档中找到了关于Redis Cluster的相关信息 <a href="https://github.com/lettuce-io/lettuce-core/wiki/Redis-Cluster#refreshing-the-cluster-topology-view" target="_blank" rel="noopener">《Refreshing the cluster topology view》</a><br>这里面的大概意思是 自适应拓扑刷新（Adaptive updates）与定时拓扑刷新（Periodic updates） 是默认关闭的，可以通过代码打开</p>
+<p>(参考  <a href="https://juejin.im/post/5e12e39cf265da5d381d0f00" target="_blank" rel="noopener">https://juejin.im/post/5e12e39cf265da5d381d0f00</a>)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class RedisConfiguration &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedisProperties redisProperties;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    @Bean(&quot;redisTemplate&quot;)</span><br><span class="line">    public RedisTemplate&lt;String, Serializable&gt; redisTemplate(@Qualifier(&quot;lettuceConnectionFactoryUvPv&quot;) RedisConnectionFactory factory) &#123;</span><br><span class="line"></span><br><span class="line">        RedisTemplate&lt;String, Serializable&gt; template &#x3D; new RedisTemplate&lt;String, Serializable&gt;();</span><br><span class="line">        template.setConnectionFactory(factory);</span><br><span class="line">        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer &#x3D; new Jackson2JsonRedisSerializer(Object.class);</span><br><span class="line">        ObjectMapper om &#x3D; new ObjectMapper();</span><br><span class="line">        om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);</span><br><span class="line">        om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);</span><br><span class="line">        jackson2JsonRedisSerializer.setObjectMapper(om);</span><br><span class="line">        StringRedisSerializer stringRedisSerializer &#x3D; new StringRedisSerializer();</span><br><span class="line">        &#x2F;&#x2F; key采用String的序列化方式</span><br><span class="line">        template.setKeySerializer(stringRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; hash的key也采用String的序列化方式-[</span><br><span class="line">        template.setHashKeySerializer(stringRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; value序列化方式采用jackson</span><br><span class="line">        template.setValueSerializer(jackson2JsonRedisSerializer);</span><br><span class="line">        &#x2F;&#x2F; hash的value序列化方式采用jackson</span><br><span class="line">        template.setHashValueSerializer(jackson2JsonRedisSerializer);</span><br><span class="line">        template.afterPropertiesSet();</span><br><span class="line">        return template;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 为RedisTemplate配置Redis连接工厂实现</span><br><span class="line">     * LettuceConnectionFactory实现了RedisConnectionFactory接口</span><br><span class="line">     * UVPV用Redis</span><br><span class="line">     *</span><br><span class="line">     * @return 返回LettuceConnectionFactory</span><br><span class="line">     *&#x2F;</span><br><span class="line">    @Bean(destroyMethod &#x3D; &quot;destroy&quot;)</span><br><span class="line">    &#x2F;&#x2F;这里要注意的是，在构建LettuceConnectionFactory 时，如果不使用内置的destroyMethod，可能会导致Redis连接早于其它Bean被销毁</span><br><span class="line">    public LettuceConnectionFactory lettuceConnectionFactoryUvPv() throws Exception &#123;</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; clusterNodes &#x3D; redisProperties.getCluster().getNodes();</span><br><span class="line">        Set&lt;RedisNode&gt; nodes &#x3D; new HashSet&lt;RedisNode&gt;();</span><br><span class="line">        clusterNodes.forEach(address -&gt; nodes.add(new RedisNode(address.split(&quot;:&quot;)[0].trim(), Integer.valueOf(address.split(&quot;:&quot;)[1]))));</span><br><span class="line">        RedisClusterConfiguration clusterConfiguration &#x3D; new RedisClusterConfiguration();</span><br><span class="line">        clusterConfiguration.setClusterNodes(nodes);</span><br><span class="line">        clusterConfiguration.setPassword(RedisPassword.of(redisProperties.getPassword()));</span><br><span class="line">        clusterConfiguration.setMaxRedirects(redisProperties.getCluster().getMaxRedirects());</span><br><span class="line"></span><br><span class="line">        GenericObjectPoolConfig poolConfig &#x3D; new GenericObjectPoolConfig();</span><br><span class="line">        poolConfig.setMaxIdle(redisProperties.getLettuce().getPool().getMaxIdle());</span><br><span class="line">        poolConfig.setMinIdle(redisProperties.getLettuce().getPool().getMinIdle());</span><br><span class="line">        poolConfig.setMaxTotal(redisProperties.getLettuce().getPool().getMaxActive());</span><br><span class="line"></span><br><span class="line">        return new LettuceConnectionFactory(clusterConfiguration, getLettuceClientConfiguration(poolConfig));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 配置LettuceClientConfiguration 包括线程池配置和安全项配置</span><br><span class="line">     *</span><br><span class="line">     * @param genericObjectPoolConfig common-pool2线程池</span><br><span class="line">     * @return lettuceClientConfiguration</span><br><span class="line">     *&#x2F;</span><br><span class="line">    private LettuceClientConfiguration getLettuceClientConfiguration(GenericObjectPoolConfig genericObjectPoolConfig) &#123;</span><br><span class="line">       &#x2F;*</span><br><span class="line">        ClusterTopologyRefreshOptions配置用于开启自适应刷新和定时刷新。如自适应刷新不开启，Redis集群变更时将会导致连接异常！</span><br><span class="line">         *&#x2F;</span><br><span class="line">        ClusterTopologyRefreshOptions topologyRefreshOptions &#x3D; ClusterTopologyRefreshOptions.builder()</span><br><span class="line">                &#x2F;&#x2F;开启自适应刷新</span><br><span class="line">                &#x2F;&#x2F;.enableAdaptiveRefreshTrigger(ClusterTopologyRefreshOptions.RefreshTrigger.MOVED_REDIRECT, ClusterTopologyRefreshOptions.RefreshTrigger.PERSISTENT_RECONNECTS)</span><br><span class="line">                &#x2F;&#x2F;开启所有自适应刷新，MOVED，ASK，PERSISTENT都会触发</span><br><span class="line">                .enableAllAdaptiveRefreshTriggers()</span><br><span class="line">                &#x2F;&#x2F; 自适应刷新超时时间(默认30秒)</span><br><span class="line">                .adaptiveRefreshTriggersTimeout(Duration.ofSeconds(25)) &#x2F;&#x2F;默认关闭开启后时间为30秒</span><br><span class="line">                &#x2F;&#x2F; 开周期刷新</span><br><span class="line">                .enablePeriodicRefresh(Duration.ofSeconds(20))  &#x2F;&#x2F; 默认关闭开启后时间为60秒 ClusterTopologyRefreshOptions.DEFAULT_REFRESH_PERIOD 60</span><br><span class="line">                .build();</span><br><span class="line">        return LettucePoolingClientConfiguration.builder()</span><br><span class="line">                .poolConfig(genericObjectPoolConfig)</span><br><span class="line">                .clientOptions(ClusterClientOptions.builder().topologyRefreshOptions(topologyRefreshOptions).build())</span><br><span class="line">                &#x2F;&#x2F;将appID传入连接，方便Redis监控中查看</span><br><span class="line">                &#x2F;&#x2F;.clientName(appName + &quot;_lettuce&quot;)</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>或者不使用Lettuce，使用Jedis</p>
+<p>当然，如果你想就此放弃Lettuce转用jedis也是可以的。在Spring Boot2.X版本，只要在pom.xml里，调整一下依赖包的引用即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework.boot&lt;&#x2F;groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;spring-boot-starter-data-redis&lt;&#x2F;artifactId&gt;</span><br><span class="line">			&lt;exclusions&gt;</span><br><span class="line">				&lt;exclusion&gt;</span><br><span class="line">					&lt;groupId&gt;io.lettuce&lt;&#x2F;groupId&gt;</span><br><span class="line">					&lt;artifactId&gt;lettuce-core&lt;&#x2F;artifactId&gt;</span><br><span class="line">				&lt;&#x2F;exclusion&gt;</span><br><span class="line">			&lt;&#x2F;exclusions&gt;</span><br><span class="line">		&lt;&#x2F;dependency&gt;</span><br><span class="line">		</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;redis.clients&lt;&#x2F;groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;jedis&lt;&#x2F;artifactId&gt;</span><br><span class="line">		&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+<p>配置上lettuce换成jedis的，既可以完成底层对jedis的替换</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">spring:</span><br><span class="line">  redis:</span><br><span class="line">    cluster:</span><br><span class="line">      nodes:</span><br><span class="line">      - 10.10.1.114:6391</span><br><span class="line">      - 10.10.1.114:6392</span><br><span class="line">      - 10.10.1.114:6393</span><br><span class="line">      - 10.10.1.49:6394</span><br><span class="line">      - 10.10.1.49:6395</span><br><span class="line">      - 10.10.1.49:6396</span><br><span class="line">      max-redirects: 3</span><br><span class="line"></span><br><span class="line">#    lettuce:</span><br><span class="line">#      pool:</span><br><span class="line">#        max-active: 10</span><br><span class="line">#        max-wait: -1ms</span><br><span class="line">#        max-idle: 10</span><br><span class="line">#        min-idle: 0</span><br><span class="line">    jedis:</span><br><span class="line">      pool:</span><br><span class="line">        max-active: 10</span><br><span class="line">        max-wait: -1ms</span><br><span class="line">        max-idle: 10</span><br><span class="line">        min-idle: 1</span><br></pre></td></tr></table></figure>
+
+
+<p>ps:不管是Lettuce 还是Jedis 拓普刷新都是有时间间隔的，Lettuce我们设置的时间是25秒adaptiveRefreshTriggersTimeout（Duration.ofSeconds(25)），25秒内，redis连接还是会报错</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/04/18/Redis%E9%9B%86%E7%BE%A4-%E5%A1%AB%E5%9D%91Lettuce/" data-id="ck955io2300009sp6fkn4bwlx" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/04/18/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/04/18/Redis%E9%9B%86%E7%BE%A4-%E5%A1%AB%E5%9D%91Lettuce/">+Redis集群(填坑Lettuce)&#39;</a>
+          </li>
+        
+          <li>
+            <a href="/2020/04/18/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
